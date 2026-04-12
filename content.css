@@ -1,0 +1,226 @@
+/* Smart Reader – Injected Styles */
+
+/* ── Save Prompt ──────────────────────────────────────────────────────────── */
+.sr-save-prompt {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border: 1px solid #313244;
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+  max-width: 420px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  transform: translateY(20px);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.sr-save-prompt.sr-visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+.sr-prompt-icon { font-size: 28px; flex-shrink: 0; }
+.sr-prompt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+.sr-prompt-text strong { color: #cba6f7; font-size: 13px; }
+.sr-prompt-text span {
+  font-size: 12px;
+  color: #a6adc8;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sr-prompt-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+.sr-btn {
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 14px;
+  transition: opacity 0.15s;
+}
+.sr-btn:hover { opacity: 0.85; }
+.sr-btn:disabled { opacity: 0.5; cursor: default; }
+.sr-btn-primary { background: #cba6f7; color: #1e1e2e; }
+.sr-btn-ghost {
+  background: transparent;
+  color: #a6adc8;
+  border: 1px solid #45475a;
+}
+.sr-btn-sm {
+  background: #89b4fa;
+  color: #1e1e2e;
+  font-size: 12px;
+  padding: 5px 12px;
+  margin-top: 12px;
+}
+
+.sr-close {
+  background: none;
+  border: none;
+  color: #6c7086;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 4px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  line-height: 1;
+}
+.sr-close:hover { color: #cdd6f4; }
+
+/* ── Floating Toolbar ─────────────────────────────────────────────────────── */
+.sr-toolbar {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  z-index: 2147483646;
+  display: flex;
+  gap: 4px;
+  background: #1e1e2e;
+  border: 1px solid #45475a;
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  opacity: 0;
+  scale: 0.92;
+  transition: opacity 0.15s ease, scale 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.sr-toolbar.sr-visible { opacity: 1; scale: 1; }
+.sr-tool-btn {
+  background: none;
+  border: none;
+  color: #cdd6f4;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 7px;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+.sr-tool-btn:hover { background: #313244; }
+
+/* ── Panel ────────────────────────────────────────────────────────────────── */
+.sr-panel {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 2147483647;
+  width: 340px;
+  max-height: 480px;
+  overflow-y: auto;
+  background: #1e1e2e;
+  color: #cdd6f4;
+  border: 1px solid #313244;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.sr-panel.sr-visible { opacity: 1; transform: translateY(0); }
+
+.sr-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid #313244;
+  position: sticky;
+  top: 0;
+  background: #1e1e2e;
+}
+.sr-panel-title { font-size: 13px; color: #a6adc8; }
+.sr-panel-title em { color: #cba6f7; font-style: normal; }
+
+.sr-panel-body { padding: 14px; }
+
+/* ── Definition content ───────────────────────────────────────────────────── */
+.sr-def-word { font-size: 20px; font-weight: 700; color: #cdd6f4; }
+.sr-phonetic { font-size: 13px; color: #89dceb; margin-top: 2px; }
+.sr-pos {
+  font-size: 12px;
+  color: #f38ba8;
+  font-style: italic;
+  margin-top: 10px;
+  margin-bottom: 4px;
+}
+.sr-defs {
+  margin: 0;
+  padding-left: 18px;
+  color: #bac2de;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.sr-defs li + li { margin-top: 4px; }
+
+/* ── Translation content ──────────────────────────────────────────────────── */
+.sr-original { font-size: 15px; color: #89b4fa; font-style: italic; }
+.sr-arrow { font-size: 18px; color: #6c7086; margin: 4px 0; }
+.sr-translated { font-size: 18px; font-weight: 700; color: #a6e3a1; }
+.sr-lang-badge {
+  display: inline-block;
+  margin-top: 8px;
+  background: #313244;
+  color: #cba6f7;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+/* ── Loading / error ──────────────────────────────────────────────────────── */
+.sr-loading { color: #6c7086; font-style: italic; font-size: 13px; }
+.sr-error { color: #f38ba8; font-size: 13px; }
+
+/* ── Toast ────────────────────────────────────────────────────────────────── */
+.sr-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  z-index: 2147483647;
+  background: #313244;
+  color: #cdd6f4;
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.sr-toast.sr-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.sr-toast-success { border-left: 3px solid #a6e3a1; }
+.sr-toast-info    { border-left: 3px solid #89b4fa; }
+.sr-toast-error   { border-left: 3px solid #f38ba8; }
+
+/* ── Highlight ────────────────────────────────────────────────────────────── */
+mark.sr-highlight {
+  border-radius: 3px;
+  padding: 1px 0;
+  mix-blend-mode: multiply;
+}

@@ -1,0 +1,56 @@
+============================
+ SMART READER – Installation
+============================
+
+1. Open your browser and go to:
+   Chrome/Edge/Brave: chrome://extensions
+   (or edge://extensions for Edge)
+
+2. Turn ON "Developer mode" (toggle in the top-right corner)
+
+3. Click "Load unpacked"
+
+4. Select this folder:
+   C:\Users\Windows 10\Desktop\smart reader
+
+5. The extension is now installed!
+   You'll see the 📚 icon in your toolbar.
+
+============================
+ HOW TO USE
+============================
+
+📄 PDF Detection
+  When you open a PDF in your browser, a prompt appears
+  in the bottom-right corner asking if you want to save it.
+  Click "Save" to add it to your library.
+
+✏️ Text Tools (select any text on a page)
+  A small toolbar appears above your selection with:
+  • Define   – Look up the English definition
+  • Translate – Translate to your chosen language
+  • Highlight – Highlight the text in yellow (or your chosen color)
+  • Dictionary – Save the word to your personal dictionary
+
+🖱️ Right-click menu
+  Right-click on any selected text and choose "Smart Reader" for
+  the same options.
+
+📚 Popup (click the toolbar icon)
+  • Library tab  – All your saved PDFs (search + open + remove)
+  • Dictionary tab – Your personal word list with definitions
+                     and translations (searchable, exportable to CSV)
+  • ⚙️ Settings   – Change translation language and highlight color
+
+============================
+ SUPPORTED BROWSERS
+============================
+  Chrome 105+, Edge 105+, Brave, Opera (Chromium-based)
+
+============================
+ NOTES
+============================
+  • Definitions are powered by the Free Dictionary API (dictionaryapi.dev)
+  • Translations are powered by MyMemory API (free tier: ~5000 words/day)
+  • All your data is stored locally in your browser — nothing is sent
+    to any server except the definition/translation API calls.

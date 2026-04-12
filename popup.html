@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Reader</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">
+        <span class="logo-icon">📚</span>
+        <span class="logo-text">Smart Reader</span>
+      </div>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-settings" title="Settings">⚙️</button>
+      </div>
+    </header>
+
+    <!-- Tabs -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="library">Library</button>
+      <button class="tab" data-tab="dictionary">Dictionary</button>
+    </nav>
+
+    <!-- Library Tab -->
+    <div class="tab-content active" id="tab-library">
+      <div class="search-row">
+        <input type="text" id="library-search" placeholder="Search saved PDFs…" class="search-input">
+      </div>
+      <div id="library-list" class="list"></div>
+      <div id="library-empty" class="empty hidden">
+        <span>📂</span>
+        <p>No PDFs saved yet.<br>Browse a PDF and click <strong>Save</strong>.</p>
+      </div>
+    </div>
+
+    <!-- Dictionary Tab -->
+    <div class="tab-content" id="tab-dictionary">
+      <div class="search-row">
+        <input type="text" id="dict-search" placeholder="Search your dictionary…" class="search-input">
+        <button class="icon-btn" id="btn-export" title="Export CSV">⬇️</button>
+      </div>
+      <div id="dict-list" class="list"></div>
+      <div id="dict-empty" class="empty hidden">
+        <span>📖</span>
+        <p>No words yet.<br>Select text on any page and choose<br><strong>Add to Dictionary</strong>.</p>
+      </div>
+    </div>
+
+    <!-- Settings Panel (overlay) -->
+    <div id="settings-panel" class="settings-panel hidden">
+      <div class="settings-header">
+        <span>Settings</span>
+        <button class="icon-btn" id="btn-settings-close">✕</button>
+      </div>
+      <label class="setting-row">
+        <span>Translate to</span>
+        <select id="setting-lang">
+          <option value="TR">Turkish (TR)</option>
+          <option value="DE">German (DE)</option>
+          <option value="FR">French (FR)</option>
+          <option value="ES">Spanish (ES)</option>
+          <option value="AR">Arabic (AR)</option>
+          <option value="ZH">Chinese (ZH)</option>
+          <option value="JA">Japanese (JA)</option>
+          <option value="RU">Russian (RU)</option>
+          <option value="PT">Portuguese (PT)</option>
+          <option value="IT">Italian (IT)</option>
+        </select>
+      </label>
+      <label class="setting-row">
+        <span>Highlight color</span>
+        <input type="color" id="setting-color" value="#FFD700">
+      </label>
+      <div class="setting-row danger-zone">
+        <span>Clear all data</span>
+        <button class="btn-danger" id="btn-clear-all">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
