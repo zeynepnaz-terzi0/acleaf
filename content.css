@@ -87,7 +87,7 @@
 
 /* ── Floating Toolbar ─────────────────────────────────────────────────────── */
 .sr-toolbar {
-  position: absolute;
+  position: fixed;
   transform: translate(-50%, -100%);
   z-index: 2147483646;
   display: flex;

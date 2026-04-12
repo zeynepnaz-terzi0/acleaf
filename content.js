@@ -125,24 +125,39 @@
   let toolbar = null;
   let selectionTimeout = null;
 
-  document.addEventListener("mouseup", () => {
+  function onSelectionEnd() {
     clearTimeout(selectionTimeout);
     selectionTimeout = setTimeout(() => {
       const sel = window.getSelection();
       const text = sel?.toString().trim();
-      if (text && text.length > 0 && text.length < 500) {
+      if (text && text.length > 0 && text.length < 500 && sel.rangeCount > 0) {
         showToolbar(sel, text);
       } else {
         hideToolbar();
       }
-    }, 200);
+    }, 220);
+  }
+
+  // Listen on both mouseup and pointerup — PDF viewers sometimes only fire one
+  document.addEventListener("mouseup",   onSelectionEnd, true);
+  document.addEventListener("pointerup", onSelectionEnd, true);
+
+  // selectionchange fires reliably even when mouseup is swallowed
+  let scTimeout = null;
+  document.addEventListener("selectionchange", () => {
+    clearTimeout(scTimeout);
+    scTimeout = setTimeout(() => {
+      const sel = window.getSelection();
+      const text = sel?.toString().trim();
+      if (!text) hideToolbar();
+    }, 400);
   });
 
   document.addEventListener("mousedown", (e) => {
     if (toolbar && !toolbar.contains(e.target)) {
       hideToolbar();
     }
-  });
+  }, true);
 
   function showToolbar(sel, text) {
     hideToolbar();
@@ -150,19 +165,30 @@
     const range = sel.getRangeAt(0);
     const rect = range.getBoundingClientRect();
 
+    // Skip if rect is degenerate (invisible/collapsed)
+    if (!rect || rect.width === 0 && rect.height === 0) return;
+
     toolbar = createElement("div", "sr-toolbar", `
-      <button class="sr-tool-btn" data-action="define" title="Define">📖 Define</button>
-      <button class="sr-tool-btn" data-action="translate" title="Translate">🌐 Translate</button>
       <button class="sr-tool-btn" data-action="highlight" title="Highlight">✏️ Highlight</button>
-      <button class="sr-tool-btn" data-action="dict" title="Add to Dictionary">📝 Dictionary</button>
+      <button class="sr-tool-btn" data-action="define"    title="Define">📖 Define</button>
+      <button class="sr-tool-btn" data-action="translate" title="Translate">🌐 Translate</button>
+      <button class="sr-tool-btn" data-action="dict"      title="Add to Dictionary">📝 Dictionary</button>
     `);
 
-    const x = rect.left + window.scrollX + rect.width / 2;
-    const y = rect.top + window.scrollY - 8;
+    // Use fixed positioning — works correctly inside iframes and PDF viewers
+    const x = Math.min(Math.max(rect.left + rect.width / 2, 80), window.innerWidth - 80);
+    // If selection is near top, show toolbar below instead of above
+    const y = rect.top > 60 ? rect.top - 8 : rect.bottom + 8;
 
     toolbar.style.left = `${x}px`;
-    toolbar.style.top = `${y}px`;
-    document.body.appendChild(toolbar);
+    toolbar.style.top  = `${y}px`;
+    // If near bottom, flip above
+    if (y > window.innerHeight - 80) {
+      toolbar.style.top = `${rect.top - 8}px`;
+    }
+
+    // Append to <html> not <body> to avoid overflow:hidden clipping
+    document.documentElement.appendChild(toolbar);
     requestAnimationFrame(() => toolbar.classList.add("sr-visible"));
 
     toolbar.addEventListener("click", (e) => {
