@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", init);
 function init() {
   setupTabs();
   setupSettings();
+  loadLastSeen();
   loadLibrary();
   loadDictionary();
   setupSearch();
@@ -59,6 +60,15 @@ function setupSettings() {
       });
     }
   });
+
+  document.getElementById("btn-clear-lastseen-settings").addEventListener("click", () => {
+    if (confirm("Clear Last Seen history?")) {
+      chrome.storage.local.set({ lastSeen: [] }, () => {
+        loadLastSeen();
+        panel.classList.add("hidden");
+      });
+    }
+  });
 }
 
 function saveSettings() {
@@ -67,6 +77,72 @@ function saveSettings() {
     highlightColor: document.getElementById("setting-color").value
   };
   chrome.storage.local.set({ settings });
+}
+
+// ── Last Seen ─────────────────────────────────────────────────────────────────
+
+let allLastSeen = [];
+
+function loadLastSeen() {
+  chrome.storage.local.get("lastSeen", ({ lastSeen = [] }) => {
+    allLastSeen = lastSeen;
+    renderLastSeen(allLastSeen);
+  });
+}
+
+function renderLastSeen(items) {
+  const list = document.getElementById("lastseen-list");
+  const empty = document.getElementById("lastseen-empty");
+
+  if (items.length === 0) {
+    list.innerHTML = "";
+    empty.classList.remove("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+
+  list.innerHTML = items.map(pdf => `
+    <div class="lib-item">
+      <div class="lib-icon">🕓</div>
+      <div class="lib-info">
+        <div class="lib-title" title="${escHtml(pdf.title)}">${escHtml(truncate(pdf.title, 52))}</div>
+        <div class="lib-url">${escHtml(truncate(pdf.url, 48))}</div>
+        <div class="lib-date">${formatRelative(pdf.lastOpenedAt)}</div>
+      </div>
+      <div class="lib-actions">
+        <button class="lib-open" data-url="${escHtml(pdf.url)}">Open</button>
+        <button class="lib-save-from-ls ls-save-btn" data-url="${escHtml(pdf.url)}" data-title="${escHtml(pdf.title)}" title="Save to Library">📌</button>
+        <button class="lib-delete ls-del-btn" data-url="${escHtml(pdf.url)}" title="Remove">✕</button>
+      </div>
+    </div>
+  `).join("");
+
+  list.querySelectorAll(".lib-open").forEach(btn => {
+    btn.addEventListener("click", () => chrome.tabs.create({ url: btn.dataset.url }));
+  });
+
+  list.querySelectorAll(".ls-save-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      chrome.runtime.sendMessage({ type: "SAVE_PDF", url: btn.dataset.url, title: btn.dataset.title }, (res) => {
+        btn.textContent = res?.duplicate ? "✓" : "📌✓";
+        btn.disabled = true;
+      });
+    });
+  });
+
+  list.querySelectorAll(".ls-del-btn").forEach(btn => {
+    btn.addEventListener("click", () => deleteLastSeen(btn.dataset.url));
+  });
+}
+
+function deleteLastSeen(url) {
+  chrome.storage.local.get("lastSeen", ({ lastSeen = [] }) => {
+    const updated = lastSeen.filter(p => p.url !== url);
+    chrome.storage.local.set({ lastSeen: updated }, () => {
+      allLastSeen = updated;
+      renderLastSeen(filterList(allLastSeen, document.getElementById("lastseen-search").value));
+    });
+  });
 }
 
 // ── Library ───────────────────────────────────────────────────────────────────
@@ -177,11 +253,23 @@ function deleteWord(word) {
 // ── Search ────────────────────────────────────────────────────────────────────
 
 function setupSearch() {
+  document.getElementById("lastseen-search").addEventListener("input", e => {
+    renderLastSeen(filterList(allLastSeen, e.target.value));
+  });
   document.getElementById("library-search").addEventListener("input", e => {
     renderLibrary(filterList(allPdfs, e.target.value));
   });
   document.getElementById("dict-search").addEventListener("input", e => {
     renderDictionary(filterList(allWords, e.target.value, "word"));
+  });
+
+  document.getElementById("btn-clear-lastseen").addEventListener("click", () => {
+    if (confirm("Clear Last Seen history?")) {
+      chrome.storage.local.set({ lastSeen: [] }, () => {
+        allLastSeen = [];
+        renderLastSeen([]);
+      });
+    }
   });
 }
 
@@ -240,4 +328,17 @@ function truncate(str, len) {
 function formatDate(ts) {
   if (!ts) return "";
   return new Date(ts).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function formatRelative(ts) {
+  if (!ts) return "";
+  const diff = Date.now() - ts;
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1)   return "Just now";
+  if (mins < 60)  return `${mins}m ago`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24)   return `${hrs}h ago`;
+  const days = Math.floor(hrs / 24);
+  if (days < 7)   return `${days}d ago`;
+  return formatDate(ts);
 }

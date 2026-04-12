@@ -20,12 +20,26 @@
 
     <!-- Tabs -->
     <nav class="tabs">
-      <button class="tab active" data-tab="library">Library</button>
+      <button class="tab active" data-tab="lastseen">Last Seen</button>
+      <button class="tab" data-tab="library">Library</button>
       <button class="tab" data-tab="dictionary">Dictionary</button>
     </nav>
 
+    <!-- Last Seen Tab -->
+    <div class="tab-content active" id="tab-lastseen">
+      <div class="search-row">
+        <input type="text" id="lastseen-search" placeholder="Search recent PDFs…" class="search-input">
+        <button class="icon-btn" id="btn-clear-lastseen" title="Clear history">🗑️</button>
+      </div>
+      <div id="lastseen-list" class="list"></div>
+      <div id="lastseen-empty" class="empty hidden">
+        <span>🕓</span>
+        <p>No PDFs opened yet.<br>Open any PDF and it will appear here <strong>automatically</strong>.</p>
+      </div>
+    </div>
+
     <!-- Library Tab -->
-    <div class="tab-content active" id="tab-library">
+    <div class="tab-content" id="tab-library">
       <div class="search-row">
         <input type="text" id="library-search" placeholder="Search saved PDFs…" class="search-input">
       </div>
@@ -77,6 +91,10 @@
       <div class="setting-row danger-zone">
         <span>Clear all data</span>
         <button class="btn-danger" id="btn-clear-all">Clear</button>
+      </div>
+      <div class="setting-row danger-zone">
+        <span>Clear Last Seen history</span>
+        <button class="btn-danger" id="btn-clear-lastseen-settings">Clear</button>
       </div>
     </div>
   </div>

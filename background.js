@@ -76,46 +76,41 @@ function isPdfUrl(url) {
 // Track tabs where we already showed the save prompt
 const promptedTabs = new Set();
 
-chrome.webNavigation.onCompleted.addListener(async (details) => {
-  if (details.frameId !== 0) return; // main frame only
+async function handlePdfTab(tabId, url, title) {
+  if (!isPdfUrl(url)) return;
+  if (promptedTabs.has(tabId)) return;
+  promptedTabs.add(tabId);
 
+  // 1. Auto-save to Last Seen immediately (silent, no prompt)
+  await addToLastSeen(url, title || url);
+
+  // 2. Show save-to-library prompt after a short delay
+  setTimeout(() => {
+    chrome.tabs.sendMessage(tabId, {
+      type: "SHOW_SAVE_PROMPT",
+      url,
+      title: title || url
+    }).catch(() => {});
+  }, 1200);
+}
+
+chrome.webNavigation.onCompleted.addListener(async (details) => {
+  if (details.frameId !== 0) return;
   const tab = await chrome.tabs.get(details.tabId).catch(() => null);
   if (!tab || !tab.url) return;
-
-  if (isPdfUrl(tab.url) && !promptedTabs.has(details.tabId)) {
-    promptedTabs.add(details.tabId);
-    // Small delay to let the page settle
-    setTimeout(() => {
-      chrome.tabs.sendMessage(details.tabId, {
-        type: "SHOW_SAVE_PROMPT",
-        url: tab.url,
-        title: tab.title || tab.url
-      }).catch(() => {});
-    }, 1200);
-  }
+  handlePdfTab(details.tabId, tab.url, tab.title);
 });
 
 // Also watch tab URL changes (for SPAs and PDF.js viewers)
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status === "complete" && tab.url) {
-    if (isPdfUrl(tab.url) && !promptedTabs.has(tabId)) {
-      promptedTabs.add(tabId);
-      setTimeout(() => {
-        chrome.tabs.sendMessage(tabId, {
-          type: "SHOW_SAVE_PROMPT",
-          url: tab.url,
-          title: tab.title || tab.url
-        }).catch(() => {});
-      }, 1200);
-    }
+    handlePdfTab(tabId, tab.url, tab.title);
   }
 });
 
 // Clear from set when tab navigates away
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  if (changeInfo.url) {
-    promptedTabs.delete(tabId);
-  }
+  if (changeInfo.url) promptedTabs.delete(tabId);
 });
 
 chrome.tabs.onRemoved.addListener((tabId) => {
@@ -151,6 +146,10 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     savePdf(msg.url, msg.title).then(sendResponse);
     return true;
   }
+  if (msg.type === "ADD_TO_LAST_SEEN") {
+    addToLastSeen(msg.url, msg.title).then(sendResponse);
+    return true;
+  }
   if (msg.type === "ADD_TO_DICTIONARY_BG") {
     addToDictionary(msg.word, msg.definition, msg.translation).then(sendResponse);
     return true;
@@ -183,6 +182,27 @@ async function savePdf(url, title) {
 
   await chrome.storage.local.set({ savedPdfs });
   return { success: true, duplicate: false };
+}
+
+async function addToLastSeen(url, title) {
+  const { lastSeen = [] } = await chrome.storage.local.get("lastSeen");
+
+  // Move to top if already exists, otherwise insert
+  const idx = lastSeen.findIndex(p => p.url === url);
+  if (idx !== -1) {
+    lastSeen[idx].lastOpenedAt = Date.now();
+    lastSeen[idx].title = title || lastSeen[idx].title;
+    // Move to front
+    lastSeen.unshift(lastSeen.splice(idx, 1)[0]);
+  } else {
+    lastSeen.unshift({ url, title: title || url, lastOpenedAt: Date.now() });
+  }
+
+  // Keep last 50
+  if (lastSeen.length > 50) lastSeen.length = 50;
+
+  await chrome.storage.local.set({ lastSeen });
+  return { success: true };
 }
 
 async function addToDictionary(word, definition = "", translation = "") {

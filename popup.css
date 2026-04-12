@@ -186,6 +186,19 @@ header {
 }
 .lib-delete:hover { color: var(--red); }
 
+.lib-save-from-ls {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  border-radius: 5px;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.lib-save-from-ls:hover { opacity: 1; }
+.lib-save-from-ls:disabled { opacity: 0.3; cursor: default; }
+
 /* ── Dictionary item ─────────────────────────────────────────────────────── */
 .dict-item {
   background: var(--bg1);

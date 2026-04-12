@@ -37,8 +37,15 @@
   if (window === window.top) {
     window.addEventListener("load", () => {
       setTimeout(() => {
-        if (looksLikePdfViewer() && !document.getElementById("sr-save-prompt")) {
-          showSavePrompt(window.location.href, document.title || window.location.href);
+        if (looksLikePdfViewer()) {
+          const url = window.location.href;
+          const title = document.title || url;
+          // Auto-save to Last Seen silently
+          chrome.runtime.sendMessage({ type: "ADD_TO_LAST_SEEN", url, title }).catch(() => {});
+          // Show save-to-library prompt
+          if (!document.getElementById("sr-save-prompt")) {
+            showSavePrompt(url, title);
+          }
         }
       }, 1500);
     });
