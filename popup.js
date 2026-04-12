@@ -1,4 +1,4 @@
-// Smart Reader – Popup Script
+// Acleaf – Popup Script
 
 document.addEventListener("DOMContentLoaded", init);
 
@@ -218,7 +218,7 @@ function exportDictionary() {
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     chrome.downloads
-      ? chrome.downloads.download({ url, filename: "smart-reader-dictionary.csv" })
+      ? chrome.downloads.download({ url, filename: "acleaf-dictionary.csv" })
       : window.open(url);
   });
 }

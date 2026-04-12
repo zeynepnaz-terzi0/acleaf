@@ -1,35 +1,35 @@
-// Smart Reader - Background Service Worker
+// Acleaf - Background Service Worker
 
 // ── Context menu setup ──────────────────────────────────────────────────────
 
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
-      id: "smart-reader-parent",
-      title: "Smart Reader",
+      id: "acleaf-parent",
+      title: "Acleaf",
       contexts: ["selection"]
     });
     chrome.contextMenus.create({
       id: "define-word",
-      parentId: "smart-reader-parent",
+      parentId: "acleaf-parent",
       title: "Define \"%s\"",
       contexts: ["selection"]
     });
     chrome.contextMenus.create({
       id: "translate-word",
-      parentId: "smart-reader-parent",
+      parentId: "acleaf-parent",
       title: "Translate \"%s\"",
       contexts: ["selection"]
     });
     chrome.contextMenus.create({
       id: "add-to-dictionary",
-      parentId: "smart-reader-parent",
+      parentId: "acleaf-parent",
       title: "Add \"%s\" to My Dictionary",
       contexts: ["selection"]
     });
     chrome.contextMenus.create({
       id: "highlight-text",
-      parentId: "smart-reader-parent",
+      parentId: "acleaf-parent",
       title: "Highlight \"%s\"",
       contexts: ["selection"]
     });

@@ -1,4 +1,4 @@
-// Smart Reader - Content Script
+// Acleaf - Content Script
 
 (function () {
   if (window.__smartReaderLoaded) return;

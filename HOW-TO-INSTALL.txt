@@ -33,7 +33,7 @@
   • Dictionary – Save the word to your personal dictionary
 
 🖱️ Right-click menu
-  Right-click on any selected text and choose "Smart Reader" for
+  Right-click on any selected text and choose "Acleaf" for
   the same options.
 
 📚 Popup (click the toolbar icon)

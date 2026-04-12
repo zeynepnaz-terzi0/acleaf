@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Smart Reader",
+  "name": "Acleaf",
   "version": "1.0.0",
   "description": "Save PDFs you read online, highlight text, look up definitions, and build your personal dictionary.",
   "permissions": [
@@ -35,7 +35,7 @@
       "48": "icons/icon48.png",
       "128": "icons/icon128.png"
     },
-    "default_title": "Smart Reader"
+    "default_title": "Acleaf"
   },
   "icons": {
     "16": "icons/icon16.png",
