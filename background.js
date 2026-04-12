@@ -51,7 +51,24 @@ function isPdfUrl(url) {
     /[?&]pdf=/i,
     /\/pdf\//i,
     /viewer.*\.pdf/i,
-    /\.pdf$/i
+    /\.pdf$/i,
+    // Web-based PDF stream/viewer patterns (e.g. digilib, institutional repos)
+    /[?&]p=fstream/i,
+    /[?&]p=.*pdf/i,
+    /fstream[-_]?pdf/i,
+    /[?&]action=download.*pdf/i,
+    /\/stream\//i,
+    /[?&]type=pdf/i,
+    /[?&]format=pdf/i,
+    /[?&]doctype=pdf/i,
+    /digilib.*fid=/i,
+    /[?&]view=pdf/i,
+    /\/bitstream\//i,
+    /\/fulltext\//i,
+    /jstor\.org\/stable\//i,
+    /arxiv\.org\/pdf\//i,
+    /sciencedirect\.com\/science\/article/i,
+    /researchgate\.net\/.*publication/i
   ];
   return pdfPatterns.some(p => p.test(url));
 }

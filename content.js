@@ -1,8 +1,12 @@
 // Acleaf - Content Script
 
 (function () {
-  if (window.__smartReaderLoaded) return;
-  window.__smartReaderLoaded = true;
+  if (window.__acleafLoaded) return;
+  window.__acleafLoaded = true;
+
+  // ── Skip truly empty/system frames (chrome-extension://, about:, etc.) ─────
+  const loc = window.location.href;
+  if (!loc || loc.startsWith("about:") || loc.startsWith("chrome:") || loc.startsWith("devtools:")) return;
 
   // ── Settings ───────────────────────────────────────────────────────────────
 
@@ -11,6 +15,34 @@
   chrome.storage.local.get("settings", ({ settings: s }) => {
     if (s) settings = { ...settings, ...s };
   });
+
+  // ── DOM-based PDF detection (catches URLs background script misses) ─────────
+
+  function looksLikePdfViewer() {
+    // Embedded PDF object/embed tags
+    const embed = document.querySelector('embed[type="application/pdf"], object[type="application/pdf"]');
+    if (embed) return true;
+    // PDF.js canvas-based viewer
+    if (document.querySelector('#viewer .page, .pdfViewer .page')) return true;
+    // Common PDF viewer wrapper IDs/classes
+    if (document.querySelector('#viewerContainer, #outerContainer, .pdf-viewer, #pdf-viewer')) return true;
+    // Title contains common PDF book/doc signals when URL has fstream/stream
+    const url = window.location.href.toLowerCase();
+    if ((url.includes('fstream') || url.includes('stream') || url.includes('view')) &&
+        document.title && document.title.length > 5) return true;
+    return false;
+  }
+
+  // Only run DOM detection on the top frame to avoid duplicate prompts from iframes
+  if (window === window.top) {
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        if (looksLikePdfViewer() && !document.getElementById("sr-save-prompt")) {
+          showSavePrompt(window.location.href, document.title || window.location.href);
+        }
+      }, 1500);
+    });
+  }
 
   // ── Message listener ────────────────────────────────────────────────────────
 
