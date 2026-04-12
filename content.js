@@ -120,125 +120,164 @@
     setTimeout(() => el.remove(), 350);
   }
 
-  // ── Floating toolbar on text selection ─────────────────────────────────────
+  // ── Selection state — saved immediately, before any clearing ──────────────
 
-  let toolbar = null;
-  let selectionTimeout = null;
+  let savedText  = "";
+  let savedRange = null;  // cloned Range, safe to use after selection is cleared
 
-  function onSelectionEnd() {
-    clearTimeout(selectionTimeout);
-    selectionTimeout = setTimeout(() => {
-      const sel = window.getSelection();
-      const text = sel?.toString().trim();
-      if (text && text.length > 0 && text.length < 500 && sel.rangeCount > 0) {
-        showToolbar(sel, text);
-      } else {
-        hideToolbar();
-      }
-    }, 220);
-  }
-
-  // Listen on both mouseup and pointerup — PDF viewers sometimes only fire one
-  document.addEventListener("mouseup",   onSelectionEnd, true);
-  document.addEventListener("pointerup", onSelectionEnd, true);
-
-  // selectionchange fires reliably even when mouseup is swallowed
-  let scTimeout = null;
+  // selectionchange fires synchronously — save text+range immediately, no delay
   document.addEventListener("selectionchange", () => {
-    clearTimeout(scTimeout);
-    scTimeout = setTimeout(() => {
-      const sel = window.getSelection();
-      const text = sel?.toString().trim();
-      if (!text) hideToolbar();
-    }, 400);
+    const sel = window.getSelection();
+    const text = sel?.toString().trim();
+    if (text && text.length > 0 && text.length < 500 && sel.rangeCount > 0) {
+      savedText  = text;
+      try { savedRange = sel.getRangeAt(0).cloneRange(); } catch {}
+      updateFab(true);   // light up the corner FAB
+    } else if (!text) {
+      updateFab(false);
+    }
   });
 
+  // ── Floating toolbar ────────────────────────────────────────────────────────
+
+  let toolbar = null;
+
+  // Show toolbar on mouseup / pointerup using *saved* rect, not live selection
+  function onPointerUp(e) {
+    // Don't trigger on toolbar itself
+    if (toolbar && toolbar.contains(e.target)) return;
+    if (!savedText || !savedRange) return;
+
+    // Small delay so PDF.js finishes its own mouseup handlers first
+    setTimeout(() => {
+      if (!savedText) return;
+      let rect;
+      try { rect = savedRange.getBoundingClientRect(); } catch { return; }
+
+      // Fallback to mouse position if rect is degenerate (PDF canvas layers)
+      if (!rect || (rect.width === 0 && rect.height === 0)) {
+        rect = { top: e.clientY, bottom: e.clientY, left: e.clientX, right: e.clientX, width: 0, height: 0 };
+      }
+      showToolbar(rect, savedText);
+    }, 80);
+  }
+
+  document.addEventListener("mouseup",   onPointerUp, true);
+  document.addEventListener("pointerup", onPointerUp, true);
+
+  // Hide toolbar on outside click
   document.addEventListener("mousedown", (e) => {
-    if (toolbar && !toolbar.contains(e.target)) {
-      hideToolbar();
-    }
+    if (toolbar && !toolbar.contains(e.target)) hideToolbar();
   }, true);
 
-  function showToolbar(sel, text) {
+  function showToolbar(rect, text) {
     hideToolbar();
 
-    const range = sel.getRangeAt(0);
-    const rect = range.getBoundingClientRect();
-
-    // Skip if rect is degenerate (invisible/collapsed)
-    if (!rect || rect.width === 0 && rect.height === 0) return;
-
     toolbar = createElement("div", "sr-toolbar", `
-      <button class="sr-tool-btn" data-action="highlight" title="Highlight">✏️ Highlight</button>
-      <button class="sr-tool-btn" data-action="define"    title="Define">📖 Define</button>
-      <button class="sr-tool-btn" data-action="translate" title="Translate">🌐 Translate</button>
-      <button class="sr-tool-btn" data-action="dict"      title="Add to Dictionary">📝 Dictionary</button>
+      <button class="sr-tool-btn" data-action="highlight">✏️ Highlight</button>
+      <button class="sr-tool-btn" data-action="define">📖 Define</button>
+      <button class="sr-tool-btn" data-action="translate">🌐 Translate</button>
+      <button class="sr-tool-btn" data-action="dict">📝 Dictionary</button>
     `);
 
-    // Use fixed positioning — works correctly inside iframes and PDF viewers
-    const x = Math.min(Math.max(rect.left + rect.width / 2, 80), window.innerWidth - 80);
-    // If selection is near top, show toolbar below instead of above
-    const y = rect.top > 60 ? rect.top - 8 : rect.bottom + 8;
+    // Clamp x inside viewport
+    const x = Math.min(Math.max(rect.left + rect.width / 2, 90), window.innerWidth - 90);
+    // Show above selection; if too close to top, show below
+    const spaceAbove = rect.top;
+    const y = spaceAbove > 52 ? rect.top - 10 : rect.bottom + 10;
 
+    // Use absolute positioning on a top-level container to escape any
+    // CSS transform context (PDF.js uses transform:scale on page containers)
+    toolbar.style.position = "fixed";
     toolbar.style.left = `${x}px`;
     toolbar.style.top  = `${y}px`;
-    // If near bottom, flip above
-    if (y > window.innerHeight - 80) {
-      toolbar.style.top = `${rect.top - 8}px`;
-    }
+    toolbar.style.transform = "translate(-50%, -100%)";
+    if (spaceAbove <= 52) toolbar.style.transform = "translate(-50%, 0)";
 
-    // Append to <html> not <body> to avoid overflow:hidden clipping
+    // Insert as direct child of <html> to avoid any stacking context issues
     document.documentElement.appendChild(toolbar);
     requestAnimationFrame(() => toolbar.classList.add("sr-visible"));
 
+    toolbar.addEventListener("mousedown", e => e.stopPropagation(), true);
     toolbar.addEventListener("click", (e) => {
       const btn = e.target.closest("[data-action]");
       if (!btn) return;
       const action = btn.dataset.action;
+      const capturedText  = savedText;
+      const capturedRange = savedRange;
       hideToolbar();
-      if (action === "define") handleDefine(text);
-      else if (action === "translate") handleTranslate(text);
-      else if (action === "highlight") highlightSelection();
-      else if (action === "dict") handleAddToDictionary(text);
+      if (action === "highlight") highlightFromRange(capturedRange, capturedText);
+      else if (action === "define")    handleDefine(capturedText);
+      else if (action === "translate") handleTranslate(capturedText);
+      else if (action === "dict")      handleAddToDictionary(capturedText);
     });
   }
 
   function hideToolbar() {
-    if (toolbar) {
-      toolbar.remove();
-      toolbar = null;
-    }
+    if (toolbar) { toolbar.remove(); toolbar = null; }
   }
+
+  // ── Corner FAB (always-visible fallback) ────────────────────────────────────
+  // When text is selected, the FAB glows — clicking it shows the action menu
+
+  const fab = createElement("div", "sr-fab", "✦");
+  fab.title = "Acleaf — text actions";
+  document.documentElement.appendChild(fab);
+
+  function updateFab(hasSelection) {
+    fab.classList.toggle("sr-fab-active", hasSelection);
+  }
+
+  fab.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!savedText) {
+      showToast("Select some text first.", "info");
+      return;
+    }
+    // Position FAB menu above the FAB
+    const fabRect = fab.getBoundingClientRect();
+    showToolbar(
+      { top: fabRect.top, bottom: fabRect.bottom, left: fabRect.left, right: fabRect.right, width: fabRect.width, height: fabRect.height },
+      savedText
+    );
+  });
 
   // ── Highlight ───────────────────────────────────────────────────────────────
 
-  function highlightSelection() {
-    const sel = window.getSelection();
-    if (!sel || sel.rangeCount === 0 || !sel.toString().trim()) return;
-
-    const range = sel.getRangeAt(0);
+  function highlightFromRange(range, text) {
+    // Use saved range — selection may already be gone by the time this runs
+    if (!range) {
+      // Fallback: try live selection
+      const sel = window.getSelection();
+      if (!sel || sel.rangeCount === 0) {
+        showToast("Could not highlight — please try again.", "error");
+        return;
+      }
+      range = sel.getRangeAt(0);
+    }
     try {
       const mark = document.createElement("mark");
       mark.className = "sr-highlight";
       mark.style.backgroundColor = settings.highlightColor;
       range.surroundContents(mark);
-      sel.removeAllRanges();
-      showToast("Text highlighted.", "success");
+      window.getSelection()?.removeAllRanges();
+      savedRange = null; savedText = "";
+      showToast("Highlighted!", "success");
     } catch {
-      // Range spans multiple elements – wrap each text node individually
-      wrapRangeInMark(range);
-      sel.removeAllRanges();
-      showToast("Text highlighted.", "success");
+      try {
+        const fragment = range.extractContents();
+        const mark = document.createElement("mark");
+        mark.className = "sr-highlight";
+        mark.style.backgroundColor = settings.highlightColor;
+        mark.appendChild(fragment);
+        range.insertNode(mark);
+        window.getSelection()?.removeAllRanges();
+        savedRange = null; savedText = "";
+        showToast("Highlighted!", "success");
+      } catch {
+        showToast("Cannot highlight here — try right-click → Acleaf → Highlight.", "error");
+      }
     }
-  }
-
-  function wrapRangeInMark(range) {
-    const fragment = range.extractContents();
-    const mark = document.createElement("mark");
-    mark.className = "sr-highlight";
-    mark.style.backgroundColor = settings.highlightColor;
-    mark.appendChild(fragment);
-    range.insertNode(mark);
   }
 
   // ── Define ──────────────────────────────────────────────────────────────────
