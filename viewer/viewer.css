@@ -1,0 +1,408 @@
+/* Acleaf PDF Viewer – Dark Theme */
+
+:root {
+  --bg0:    #1e1e2e;
+  --bg1:    #181825;
+  --bg2:    #313244;
+  --bg3:    #45475a;
+  --text:   #cdd6f4;
+  --subtext:#a6adc8;
+  --accent: #cba6f7;
+  --blue:   #89b4fa;
+  --green:  #a6e3a1;
+  --red:    #f38ba8;
+  --teal:   #89dceb;
+  --toolbar-h: 48px;
+  --sidebar-w: 200px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  background: var(--bg0);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+}
+
+/* ── Top Toolbar ─────────────────────────────────────────────────────── */
+.toolbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: var(--toolbar-h);
+  background: var(--bg1);
+  border-bottom: 1px solid var(--bg2);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.toolbar-left  { flex: 1; min-width: 0; }
+.toolbar-right { flex: 1; justify-content: flex-end; }
+
+.tb-title {
+  font-size: 13px;
+  color: var(--subtext);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 260px;
+}
+
+.tb-btn {
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  color: var(--subtext);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 5px 8px;
+  transition: background 0.12s, color 0.12s;
+  white-space: nowrap;
+}
+.tb-btn:hover {
+  background: var(--bg2);
+  color: var(--text);
+}
+.tb-btn:disabled { opacity: 0.35; cursor: default; }
+
+.tb-save {
+  font-size: 12px;
+  color: var(--accent);
+  border-color: var(--accent);
+  padding: 5px 12px;
+}
+.tb-save:hover { background: rgba(203,166,247,0.15); color: var(--accent); }
+
+.page-info {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--subtext);
+}
+#currentPage {
+  width: 44px;
+  text-align: center;
+  background: var(--bg2);
+  border: 1px solid var(--bg3);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  padding: 3px 4px;
+  outline: none;
+}
+#currentPage:focus { border-color: var(--accent); }
+
+.page-sep { color: var(--bg3); }
+#totalPages { color: var(--subtext); }
+
+.zoom-label {
+  font-size: 13px;
+  color: var(--subtext);
+  min-width: 42px;
+  text-align: center;
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────── */
+.layout {
+  display: flex;
+  height: 100vh;
+  padding-top: var(--toolbar-h);
+}
+
+/* ── Sidebar ─────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  min-width: var(--sidebar-w);
+  background: var(--bg1);
+  border-right: 1px solid var(--bg2);
+  overflow-y: auto;
+  overflow-x: hidden;
+  transition: width 0.2s ease, min-width 0.2s ease, opacity 0.2s ease;
+}
+.sidebar.collapsed {
+  width: 0;
+  min-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+.sidebar-inner {
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.thumb-wrap {
+  cursor: pointer;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  transition: border-color 0.15s;
+  background: var(--bg2);
+  position: relative;
+}
+.thumb-wrap:hover  { border-color: var(--bg3); }
+.thumb-wrap.active { border-color: var(--accent); }
+
+.thumb-wrap canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.thumb-num {
+  position: absolute;
+  bottom: 3px;
+  right: 5px;
+  font-size: 10px;
+  color: var(--subtext);
+  background: rgba(30,30,46,0.75);
+  border-radius: 4px;
+  padding: 1px 4px;
+}
+
+/* ── Viewer Main ─────────────────────────────────────────────────────── */
+.viewer-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  background: var(--bg0);
+  position: relative;
+}
+
+/* Spinner */
+.spinner-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--bg2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-label { color: var(--subtext); font-size: 13px; }
+
+/* Error */
+.error-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 10px;
+}
+.error-icon { font-size: 36px; }
+.error-msg  { color: var(--red); font-size: 14px; text-align: center; max-width: 360px; }
+
+/* Pages */
+.pages-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 20px 60px;
+}
+
+.page-wrap {
+  position: relative;
+  background: #fff;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  border-radius: 2px;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.page-wrap canvas {
+  display: block;
+}
+
+/* Text layer */
+.page-wrap .textLayer {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  line-height: 1;
+  pointer-events: all;
+}
+
+.page-wrap .textLayer span,
+.page-wrap .textLayer br {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform-origin: 0% 0%;
+}
+
+.page-wrap .textLayer ::selection {
+  background: rgba(203,166,247,0.35);
+  color: transparent;
+}
+
+/* ── Floating Selection Toolbar ──────────────────────────────────────── */
+.sr-toolbar {
+  position: fixed;
+  z-index: 9999;
+  display: flex;
+  gap: 4px;
+  background: var(--bg0);
+  border: 1px solid var(--bg3);
+  border-radius: 10px;
+  padding: 6px 8px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.55);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.sr-toolbar.sr-visible {
+  opacity: 1;
+  pointer-events: all;
+  transform: translateY(0);
+}
+
+.sr-tool-btn {
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 5px 9px;
+  border-radius: 7px;
+  white-space: nowrap;
+  transition: background 0.1s;
+}
+.sr-tool-btn:hover { background: var(--bg2); }
+
+/* ── Side Panel ──────────────────────────────────────────────────────── */
+.side-panel {
+  position: fixed;
+  top: var(--toolbar-h);
+  right: -360px;
+  width: 340px;
+  height: calc(100vh - var(--toolbar-h));
+  background: var(--bg0);
+  border-left: 1px solid var(--bg2);
+  box-shadow: -4px 0 24px rgba(0,0,0,0.45);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  transition: right 0.25s ease;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+.side-panel.open { right: 0; }
+
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--bg2);
+  flex-shrink: 0;
+}
+.side-panel-title {
+  font-size: 13px;
+  color: var(--subtext);
+  font-weight: 600;
+}
+.side-panel-close {
+  font-size: 14px;
+  color: var(--subtext);
+}
+
+.side-panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+}
+
+/* Definition / Translation content (reusing content.css class names) */
+.sr-def-word   { font-size: 20px; font-weight: 700; color: var(--text); }
+.sr-phonetic   { font-size: 13px; color: var(--teal); margin-top: 2px; }
+.sr-pos        { font-size: 12px; color: var(--red); font-style: italic; margin: 10px 0 4px; }
+.sr-defs       { margin: 0; padding-left: 18px; color: #bac2de; font-size: 13.5px; line-height: 1.6; }
+.sr-defs li + li { margin-top: 4px; }
+
+.sr-original    { font-size: 15px; color: var(--blue); font-style: italic; }
+.sr-arrow       { font-size: 18px; color: var(--bg3); margin: 4px 0; }
+.sr-translated  { font-size: 18px; font-weight: 700; color: var(--green); }
+.sr-lang-badge  {
+  display: inline-block;
+  margin-top: 8px;
+  background: var(--bg2);
+  color: var(--accent);
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+
+.sr-loading { color: var(--bg3); font-style: italic; font-size: 13px; }
+.sr-error   { color: var(--red); font-size: 13px; }
+
+/* ── Toast ───────────────────────────────────────────────────────────── */
+.sr-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  z-index: 9999;
+  background: var(--bg2);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 20px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 13px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  opacity: 0;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.sr-toast.sr-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+.sr-toast.sr-toast-success { border-left: 3px solid var(--green); }
+.sr-toast.sr-toast-info    { border-left: 3px solid var(--blue);  }
+.sr-toast.sr-toast-error   { border-left: 3px solid var(--red);   }
+
+/* ── Highlight marks ─────────────────────────────────────────────────── */
+mark.sr-highlight {
+  border-radius: 3px;
+  padding: 1px 0;
+  mix-blend-mode: multiply;
+}
+
+/* ── Scrollbar styling ───────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg1); }
+::-webkit-scrollbar-thumb { background: var(--bg3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--subtext); }

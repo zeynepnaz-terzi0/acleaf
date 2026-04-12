@@ -78,20 +78,19 @@ const promptedTabs = new Set();
 
 async function handlePdfTab(tabId, url, title) {
   if (!isPdfUrl(url)) return;
+  // Don't redirect if already in our viewer
+  if (url.includes(chrome.runtime.getURL("viewer"))) return;
   if (promptedTabs.has(tabId)) return;
   promptedTabs.add(tabId);
 
-  // 1. Auto-save to Last Seen immediately (silent, no prompt)
+  // Auto-save to Last Seen
   await addToLastSeen(url, title || url);
 
-  // 2. Show save-to-library prompt after a short delay
-  setTimeout(() => {
-    chrome.tabs.sendMessage(tabId, {
-      type: "SHOW_SAVE_PROMPT",
-      url,
-      title: title || url
-    }).catch(() => {});
-  }, 1200);
+  // Redirect to our PDF viewer where text selection works
+  const viewerUrl = chrome.runtime.getURL("viewer/index.html")
+    + "?url=" + encodeURIComponent(url)
+    + "&title=" + encodeURIComponent(title || url);
+  chrome.tabs.update(tabId, { url: viewerUrl }).catch(() => {});
 }
 
 chrome.webNavigation.onCompleted.addListener(async (details) => {
@@ -160,6 +159,21 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   }
   if (msg.type === "FETCH_TRANSLATION") {
     fetchTranslation(msg.word, msg.targetLang).then(sendResponse);
+    return true;
+  }
+  if (msg.type === "PROXY_PDF") {
+    fetch(msg.url, { credentials: "include" })
+      .then(r => r.arrayBuffer())
+      .then(buf => {
+        const bytes = new Uint8Array(buf);
+        let binary = "";
+        const chunk = 8192;
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+        }
+        sendResponse({ ok: true, b64: btoa(binary) });
+      })
+      .catch(e => sendResponse({ ok: false, error: e.message }));
     return true;
   }
 });

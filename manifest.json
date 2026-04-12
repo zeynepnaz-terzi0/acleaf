@@ -10,7 +10,8 @@
     "notifications",
     "webNavigation",
     "activeTab",
-    "scripting"
+    "scripting",
+    "declarativeNetRequest"
   ],
   "host_permissions": [
     "<all_urls>"
@@ -43,9 +44,16 @@
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'; worker-src blob: https://cdnjs.cloudflare.com"
+  },
   "web_accessible_resources": [
     {
       "resources": ["icons/*"],
+      "matches": ["<all_urls>"]
+    },
+    {
+      "resources": ["viewer/*"],
       "matches": ["<all_urls>"]
     }
   ]

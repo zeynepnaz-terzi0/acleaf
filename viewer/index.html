@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Acleaf PDF Viewer</title>
+  <link rel="stylesheet" href="viewer.css" />
+</head>
+<body>
+
+  <!-- ── Top Toolbar ─────────────────────────────────────────────────── -->
+  <header class="toolbar" id="topToolbar">
+    <div class="toolbar-left">
+      <button class="tb-btn" id="toggleSidebar" title="Toggle thumbnails">☰</button>
+      <span class="tb-title" id="pdfTitle">Loading…</span>
+    </div>
+
+    <div class="toolbar-center">
+      <button class="tb-btn" id="prevPage" title="Previous page">‹</button>
+      <span class="page-info">
+        <input type="number" id="currentPage" min="1" value="1" />
+        <span class="page-sep">/</span>
+        <span id="totalPages">—</span>
+      </span>
+      <button class="tb-btn" id="nextPage" title="Next page">›</button>
+    </div>
+
+    <div class="toolbar-right">
+      <button class="tb-btn" id="zoomOut" title="Zoom out">−</button>
+      <span class="zoom-label" id="zoomLabel">100%</span>
+      <button class="tb-btn" id="zoomIn" title="Zoom in">+</button>
+      <button class="tb-btn tb-save" id="saveToLib" title="Save to Library">🔖 Save</button>
+    </div>
+  </header>
+
+  <!-- ── Main Layout ─────────────────────────────────────────────────── -->
+  <div class="layout" id="layout">
+
+    <!-- Sidebar / Thumbnails -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-inner" id="thumbnailContainer"></div>
+    </aside>
+
+    <!-- PDF Canvas Area -->
+    <main class="viewer-main" id="viewerMain">
+      <!-- Loading spinner -->
+      <div class="spinner-wrap" id="spinnerWrap">
+        <div class="spinner"></div>
+        <p class="spinner-label">Loading PDF…</p>
+      </div>
+
+      <!-- Error message -->
+      <div class="error-wrap" id="errorWrap" hidden>
+        <p class="error-icon">⚠️</p>
+        <p class="error-msg" id="errorMsg">Failed to load PDF.</p>
+      </div>
+
+      <!-- Pages will be appended here -->
+      <div class="pages-container" id="pagesContainer"></div>
+    </main>
+
+  </div>
+
+  <!-- ── Floating Selection Toolbar ─────────────────────────────────── -->
+  <div class="sr-toolbar" id="selToolbar">
+    <button class="sr-tool-btn" id="btnHighlight">✏️ Highlight</button>
+    <button class="sr-tool-btn" id="btnDefine">📖 Define</button>
+    <button class="sr-tool-btn" id="btnTranslate">🌐 Translate</button>
+    <button class="sr-tool-btn" id="btnDictionary">📝 Dictionary</button>
+  </div>
+
+  <!-- ── Side Panel (definition / translation) ──────────────────────── -->
+  <div class="side-panel" id="sidePanel">
+    <div class="side-panel-header">
+      <span class="side-panel-title" id="sidePanelTitle">Definition</span>
+      <button class="tb-btn side-panel-close" id="sidePanelClose">✕</button>
+    </div>
+    <div class="side-panel-body" id="sidePanelBody"></div>
+  </div>
+
+  <!-- ── Toast ──────────────────────────────────────────────────────── -->
+  <div class="sr-toast" id="toast"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="viewer.js"></script>
+</body>
+</html>
