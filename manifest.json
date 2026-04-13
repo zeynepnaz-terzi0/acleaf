@@ -45,7 +45,7 @@
     "128": "icons/icon128.png"
   },
   "content_security_policy": {
-    "extension_pages": "script-src 'self' https://cdnjs.cloudflare.com; object-src 'self'; worker-src blob: https://cdnjs.cloudflare.com"
+    "extension_pages": "script-src 'self'; object-src 'self'; worker-src blob:"
   },
   "web_accessible_resources": [
     {
@@ -53,7 +53,7 @@
       "matches": ["<all_urls>"]
     },
     {
-      "resources": ["viewer/*"],
+      "resources": ["viewer/*", "viewer/pdf.min.js", "viewer/pdf.worker.min.js"],
       "matches": ["<all_urls>"]
     }
   ]

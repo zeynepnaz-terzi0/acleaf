@@ -1,3 +1,6 @@
 .claude/
 generate-icons.js
 node_modules/
+# PDF.js vendor files — download via: python3 -c "import urllib.request; [urllib.request.urlretrieve(u,n) for u,n in [('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js','viewer/pdf.min.js'),('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js','viewer/pdf.worker.min.js')]]"
+viewer/pdf.min.js
+viewer/pdf.worker.min.js

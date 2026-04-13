@@ -3,7 +3,7 @@
 
 // ── PDF.js worker ────────────────────────────────────────────────────────────
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  chrome.runtime.getURL('viewer/pdf.worker.min.js');
 
 // ── Parse URL params ─────────────────────────────────────────────────────────
 const params   = new URLSearchParams(window.location.search);
