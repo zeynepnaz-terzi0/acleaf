@@ -118,7 +118,12 @@ function renderLastSeen(items) {
   `).join("");
 
   list.querySelectorAll(".lib-open").forEach(btn => {
-    btn.addEventListener("click", () => chrome.tabs.create({ url: btn.dataset.url }));
+    btn.addEventListener("click", () => {
+      const viewerUrl = chrome.runtime.getURL("viewer/index.html")
+        + "?url="   + encodeURIComponent(btn.dataset.url)
+        + "&title=" + encodeURIComponent(btn.dataset.title || btn.dataset.url);
+      chrome.tabs.create({ url: viewerUrl });
+    });
   });
 
   list.querySelectorAll(".ls-save-btn").forEach(btn => {
@@ -176,14 +181,20 @@ function renderLibrary(pdfs) {
         <div class="lib-date">${formatDate(pdf.savedAt)}</div>
       </div>
       <div class="lib-actions">
-        <button class="lib-open" data-url="${escHtml(pdf.url)}">Open</button>
+        <button class="lib-open" data-url="${escHtml(pdf.url)}" data-title="${escHtml(pdf.title)}">Open</button>
         <button class="lib-delete" data-url="${escHtml(pdf.url)}" title="Remove">✕</button>
       </div>
     </div>
   `).join("");
 
   list.querySelectorAll(".lib-open").forEach(btn => {
-    btn.addEventListener("click", () => chrome.tabs.create({ url: btn.dataset.url }));
+    btn.addEventListener("click", () => {
+      // Open in Acleaf viewer in a new tab so user can highlight & annotate
+      const viewerUrl = chrome.runtime.getURL("viewer/index.html")
+        + "?url="   + encodeURIComponent(btn.dataset.url)
+        + "&title=" + encodeURIComponent(btn.dataset.title || btn.dataset.url);
+      chrome.tabs.create({ url: viewerUrl });
+    });
   });
 
   list.querySelectorAll(".lib-delete").forEach(btn => {

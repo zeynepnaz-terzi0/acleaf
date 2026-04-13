@@ -125,21 +125,17 @@ chrome.tabs.onRemoved.addListener((tabId) => {
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   const selectedText = info.selectionText?.trim();
-  if (!selectedText) return;
+  if (!selectedText || !tab?.id) return;
 
+  // Don't send to our viewer page — it handles its own actions internally
+  if (tab.url?.startsWith(chrome.runtime.getURL("viewer"))) return;
+
+  const send = (msg) => chrome.tabs.sendMessage(tab.id, msg).catch(() => {});
   switch (info.menuItemId) {
-    case "define-word":
-      chrome.tabs.sendMessage(tab.id, { type: "DEFINE_WORD", word: selectedText });
-      break;
-    case "translate-word":
-      chrome.tabs.sendMessage(tab.id, { type: "TRANSLATE_WORD", word: selectedText });
-      break;
-    case "add-to-dictionary":
-      chrome.tabs.sendMessage(tab.id, { type: "ADD_TO_DICTIONARY", word: selectedText });
-      break;
-    case "highlight-text":
-      chrome.tabs.sendMessage(tab.id, { type: "HIGHLIGHT_SELECTION", word: selectedText });
-      break;
+    case "define-word":      send({ type: "DEFINE_WORD",       word: selectedText }); break;
+    case "translate-word":   send({ type: "TRANSLATE_WORD",    word: selectedText }); break;
+    case "add-to-dictionary":send({ type: "ADD_TO_DICTIONARY", word: selectedText }); break;
+    case "highlight-text":   send({ type: "HIGHLIGHT_SELECTION",word: selectedText }); break;
   }
 });
 

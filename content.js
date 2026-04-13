@@ -58,17 +58,18 @@
       case "SHOW_SAVE_PROMPT":
         showSavePrompt(msg.url, msg.title);
         break;
+      // These actions require top-frame context — ignore in child frames
       case "DEFINE_WORD":
-        handleDefine(msg.word);
+        if (window === window.top && typeof handleDefine === "function") handleDefine(msg.word);
         break;
       case "TRANSLATE_WORD":
-        handleTranslate(msg.word);
+        if (window === window.top && typeof handleTranslate === "function") handleTranslate(msg.word);
         break;
       case "ADD_TO_DICTIONARY":
-        handleAddToDictionary(msg.word);
+        if (window === window.top && typeof handleAddToDictionary === "function") handleAddToDictionary(msg.word);
         break;
       case "HIGHLIGHT_SELECTION":
-        highlightInFrame(savedRange, savedText, savedIframe);
+        if (window === window.top && typeof highlightInFrame === "function") highlightInFrame(savedRange, savedText, savedIframe);
         break;
     }
   });
@@ -233,7 +234,8 @@
     const y = above ? rect.top - 10 : rect.bottom + 10;
     toolbar.style.cssText = `position:fixed!important;left:${x}px;top:${y}px;transform:translate(-50%,${above?"-100%":"0"})`;
     document.documentElement.appendChild(toolbar);
-    requestAnimationFrame(() => toolbar.classList.add("sr-visible"));
+    const _t = toolbar; // capture before async — toolbar may be nulled by hideToolbar()
+    requestAnimationFrame(() => _t && _t.isConnected && _t.classList.add("sr-visible"));
 
     toolbar.addEventListener("mousedown", e => e.stopPropagation(), true);
     toolbar.addEventListener("click", (e) => {
