@@ -9,6 +9,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc =
 const params   = new URLSearchParams(window.location.search);
 const pdfUrl   = params.get('url')   || '';
 const pdfTitle = params.get('title') || pdfUrl || 'PDF';
+const isLocal  = params.get('local') === '1' || pdfUrl.startsWith('file://');
 
 // Set browser tab title
 document.title = pdfTitle + ' – Acleaf';
@@ -73,7 +74,7 @@ saveBtn.addEventListener('click', async () => {
   }
 });
 
-// ── Load PDF via background proxy ────────────────────────────────────────────
+// ── Load PDF via background proxy (web) or directly (local file) ─────────────
 async function loadPdf() {
   if (!pdfUrl) {
     showError('No PDF URL provided.');
@@ -81,18 +82,22 @@ async function loadPdf() {
   }
 
   try {
-    const resp = await chrome.runtime.sendMessage({ type: 'PROXY_PDF', url: pdfUrl });
+    let loadingTask;
 
-    if (!resp || !resp.ok) {
-      throw new Error(resp?.error || 'Proxy fetch failed');
+    if (isLocal) {
+      // Local file:// — load directly by URL (no proxy needed)
+      loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
+    } else {
+      // Remote URL — fetch via background service worker (handles CORS/auth)
+      const resp = await chrome.runtime.sendMessage({ type: 'PROXY_PDF', url: pdfUrl });
+      if (!resp || !resp.ok) throw new Error(resp?.error || 'Proxy fetch failed');
+
+      const binary = atob(resp.b64);
+      const bytes  = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      loadingTask = pdfjsLib.getDocument({ data: bytes });
     }
 
-    // Decode base64 → Uint8Array
-    const binary = atob(resp.b64);
-    const bytes  = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-
-    const loadingTask = pdfjsLib.getDocument({ data: bytes });
     pdfDoc = await loadingTask.promise;
 
     numPages = pdfDoc.numPages;
@@ -301,19 +306,20 @@ document.addEventListener('mouseup', (e) => {
   savedText  = sel.toString().trim();
   savedRange = sel.getRangeAt(0).cloneRange();
 
-  // Position above selection
+  // Use fixed positioning — works regardless of scroll container
   const rect = sel.getRangeAt(0).getBoundingClientRect();
-  const tbW  = selToolbar.offsetWidth || 260;
-  const tbH  = selToolbar.offsetHeight || 40;
+  const tbW  = 280;
+  const tbH  = 44;
 
   let left = rect.left + rect.width / 2 - tbW / 2;
-  let top  = rect.top  - tbH - 8 + window.scrollY;
+  let top  = rect.top  - tbH - 8;
 
   // Clamp to viewport
   if (left < 6) left = 6;
   if (left + tbW > window.innerWidth - 6) left = window.innerWidth - tbW - 6;
-  if (top < 6) top = rect.bottom + 8 + window.scrollY;
+  if (top < 6) top = rect.bottom + 8;
 
+  selToolbar.style.position = 'fixed';
   selToolbar.style.left = left + 'px';
   selToolbar.style.top  = top  + 'px';
   selToolbar.classList.add('sr-visible');

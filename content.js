@@ -68,7 +68,7 @@
         handleAddToDictionary(msg.word);
         break;
       case "HIGHLIGHT_SELECTION":
-        highlightSelection();
+        highlightInFrame(savedRange, savedText, savedIframe);
         break;
     }
   });

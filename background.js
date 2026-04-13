@@ -86,10 +86,15 @@ async function handlePdfTab(tabId, url, title) {
   // Auto-save to Last Seen
   await addToLastSeen(url, title || url);
 
+  // For local file:// PDFs the background can't proxy them,
+  // pass them directly — the viewer will fetch them itself
+  const isLocal = url.startsWith("file://");
+
   // Redirect to our PDF viewer where text selection works
   const viewerUrl = chrome.runtime.getURL("viewer/index.html")
     + "?url=" + encodeURIComponent(url)
-    + "&title=" + encodeURIComponent(title || url);
+    + "&title=" + encodeURIComponent(title || url)
+    + (isLocal ? "&local=1" : "");
   chrome.tabs.update(tabId, { url: viewerUrl }).catch(() => {});
 }
 
